@@ -8,12 +8,15 @@ import { chromium } from "playwright"
 const shot = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await unstable_getServerSession(req, res, authOptions)
   if (session) {
-    let browser = await chromium.launch()
-
+    if (session.user?.email !='io@fosshost.org'){
+      res.status(401)
+    }
+  const browser =await  chromium.launch()
+  const {url } = req.query
     let page = await browser.newPage()
-    await page.setViewportSize({ width: 1280, height: 1080 })
-    await page.goto("http://nytimes.com")
-    const buffer = await page.screenshot({ timeout: 7, type: "png" })
+    await page.setViewportSize({ width: 1440, height: 770})
+    await page.goto(url as string).catch(err =>{console.error(err)})
+    const buffer = await page.screenshot({ type:"png",timeout: 8000 })
     res.setHeader("content-type", "image/png")
     res.status(200).write(buffer)
   } else {
