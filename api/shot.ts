@@ -1,7 +1,7 @@
 import { unstable_getServerSession } from "next-auth/next"
 import type { NextApiRequest, NextApiResponse } from "next"
 
-import { authOptions } from "./auth/[...nextauth]"
+import { authOptions } from "../pages/auth/[...nextauth]"
 import playwright from 'playwright-core'
 import  chromium from "chrome-aws-lambda"
 
