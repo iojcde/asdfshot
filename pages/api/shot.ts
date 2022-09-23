@@ -1,9 +1,7 @@
 import { unstable_getServerSession } from "next-auth/next"
 import type { NextApiRequest, NextApiResponse } from "next"
-import chrome from 'chrome-aws-lambda'
+const chromium = require('chrome-aws-lambda')
 import { authOptions } from "./auth/[...nextauth]"
-
-import { chromium } from "playwright"
 
 const shot = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await unstable_getServerSession(req, res, authOptions)
@@ -11,16 +9,28 @@ const shot = async (req: NextApiRequest, res: NextApiResponse) => {
     if (session.user?.email !='io@fosshost.org'){
       res.status(401)
     }
-    const browser = await chromium.launch({
-      args: chrome.args,
-      executablePath: await chrome.executablePath,
-      headless: chrome.headless,
+    
+   const browser = await chromium.puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
     });
-  const { url } = req.query
-    let page = await browser.newPage()
-    await page.setViewportSize({ width: 1440, height: 770})
-    await page.goto(url as string).catch(err =>{console.error(err)})
-    const buffer = await page.screenshot({ type:"png",timeout: 8000 })
+
+    // Create a new page
+    const page = await browser.newPage();
+
+  // Set viewport width and height
+    await page.setViewport({ width: 1440, height: 770 });
+
+    const { url } = req.query
+
+  // Open URL in current page
+  await page.goto(url as string, { waitUntil: 'networkidle0' });
+
+  // Capture screenshot
+  const buffer = await page.screenshot();
     res.setHeader("content-type", "image/png")
     res.status(200).write(buffer)
   } else {
