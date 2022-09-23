@@ -1,9 +1,9 @@
 import { unstable_getServerSession } from "next-auth/next"
 import type { NextApiRequest, NextApiResponse } from "next"
-import chrome from 'chrome-aws-lambda'
-import { authOptions } from "./auth/[...nextauth]"
 
-import { chromium } from "playwright"
+import { authOptions } from "./auth/[...nextauth]"
+import playwright from 'playwright-core'
+import  chromium from "chrome-aws-lambda"
 
 const shot = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await unstable_getServerSession(req, res, authOptions)
@@ -11,10 +11,10 @@ const shot = async (req: NextApiRequest, res: NextApiResponse) => {
     if (session.user?.email !='io@fosshost.org'){
       res.status(401)
     }
-    const browser = await chromium.launch({
-      args: chrome.args,
-      executablePath: await chrome.executablePath,
-      headless: chrome.headless,
+    const browser = await playwright.chromium.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
     });
   const { url } = req.query
     let page = await browser.newPage()
